@@ -1,0 +1,71 @@
+public class CurrencyConverterCont { 
+    public Decimal amount { get; set; } 
+    public String fromCurrency { get; set; } 
+    public String toCurrency { get; set; } 
+    public Decimal convertedAmount { get; set; } 
+     
+    // Simple static exchange rates 
+    Map<String, Decimal> exchangeRates = new Map<String, Decimal>{ 
+        'USD_INR' => 83.0, 
+        'EUR_INR' => 90.0, 
+        'INR_USD' => 0.012, 
+        'INR_EUR' => 0.011, 
+        'USD_EUR' => 0.93, 
+        'EUR_USD' => 1.07 
+    }; 
+     
+    public List<SelectOption> getCurrencyOptions() { 
+        return new List<SelectOption>{ 
+            new SelectOption('USD', 'USD'), 
+            new SelectOption('INR', 'INR'), 
+            new SelectOption('EUR', 'EUR') 
+        }; 
+    } 
+     
+    public void convert() { 
+        String key = fromCurrency + '_' + toCurrency; 
+        if (exchangeRates.containsKey(key)) { 
+            Decimal rate = exchangeRates.get(key); 
+            convertedAmount = amount * rate; 
+        } else if (fromCurrency == toCurrency) { 
+            convertedAmount = amount; 
+        } else { 
+            convertedAmount = null; 
+        } 
+    } 
+} 
+  
+<apex:page controller="CurrencyConverterCont"> 
+    <h2>Currency Converter</h2> 
+    <apex:form> 
+        <apex:pageBlock title="Convert Currency"> 
+            <apex:pageBlockSection> 
+                <apex:inputText value="{!amount}" label="Amount"/> 
+                 
+                <apex:selectList value="{!fromCurrency}" size="1" label="From Currency"> 
+                    <apex:selectOptions value="{!currencyOptions}"/> 
+                </apex:selectList> 
+                 
+                <apex:selectList value="{!toCurrency}" size="1" label="To Currency"> 
+                    <apex:selectOptions value="{!currencyOptions}"/> 
+                </apex:selectList> 
+            </apex:pageBlockSection> 
+             
+            <apex:pageBlockSection> 
+                <apex:commandButton value="Convert" action="{!convert}"/> 
+            </apex:pageBlockSection> 
+             
+            <apex:pageBlockSection rendered="{!NOT(ISNULL(convertedAmount))}"> 
+                <apex:outputText value="Converted Amount: {!convertedAmount} 
+{!toCurrency}"/> 
+            </apex:pageBlockSection> 
+        </apex:pageBlock> 
+    </apex:form> 
+</apex:page> 
+  
+CurrencyConverterCont cc = new CurrencyConverterCont(); 
+cc.amount = 1000; 
+cc.fromCurrency = 'USD'; 
+cc.toCurrency = 'INR'; 
+cc.convert(); 
+System.debug('Converted Amount: ' + cc.convertedAmount); 

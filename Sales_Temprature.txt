@@ -1,0 +1,74 @@
+public class TemperatureConverter{
+public Decimal inputTemp {get; set; }
+public String scale {get; set; }//'CtoF' or 'FtoC'
+public Decimal convertedTemp {get; set; }
+public String result {get; set; }
+public class TemperatureConverter {
+public Decimal inputTemp { get; set; }
+public String scale { get; set; } // 'CtoF' or 'FtoC'
+public Decimal convertedTemp { get; set; }
+public String result { get; set; }
+public List<SelectOption> getScaleOptions() {
+List<SelectOption> options =new List<SelectOption>();
+options.add(new SelectOption('CtoF’, ‘Celsius to Fahrenheit’);
+options.add(new SelectOption('FtoC’, ‘Fahrenheit to Celsius’);
+return options;
+public List<SelectOption> getScaleOptions() {
+List<SelectOption> options = new List<SelectOption>();
+options.add(new SelectOption('CtoF', 'Celsius to Fahrenheit'));
+options.add(new SelectOption('FtoC', 'Fahrenheit to Celsius'));
+return options;
+}
+public void convert() {
+if (scale == 'CtoF') {
+public void convert()
+{
+if (scale =='CtoF’)
+{
+convertedTemp =(inputTemp * 9/5) +32;
+convertedTemp = (inputTemp 9 / 5) + 32;
+result =inputTemp +'°C ='+convertedTemp + ' °F';
+result = inputTemp + ' °C = ' + convertedTemp + ' °F';
+}else if (scale =='FtoC’)
+convertedTemp =(inputTemp - 32) * 5/9;
+} else if (scale == 'FtoC') {
+{
+convertedTemp = (inputTemp 32) * 5 / 9;
+result = inputTemp + ' °F = ' + convertedTemp + ' °C';
+result =inoutTemp +'°F ='+convertedTemp +'°C';
+selse{
+result ='Invalid scale selected.’;
+} else {
+result = 'Invalid scale selected.';
+}
+}
+}
+
+<apex:page controller="TemperatureConverter">
+<h2>Temperature Converter</h2>
+<apex:form>
+<apex:pageBlock title="Convert Temperature">
+<apex:pageBlockSection columns="1">
+<apex:inputText value="{!inputTemp}" label="Enter Temperature"/>
+<apex:selectList value="{!scale}" size="1" label="Conversion Type">
+<apex:selectOptions value="{!scaleOptions}"/>
+</apex:selectList>
+<apex:commandButton value="Convert" action="{!convert}"
+rerender="resultPanel"/>
+</apex:pageBlockSection>
+<apex:outputPanel id="resultPanel">
+<apex:outputText value="{!result}" style="font-weight:bold; color:green;"
+rendered="{!NOT(ISNULL(result))}"/>
+</apex:outputPanel>
+</apex:pageBlock>
+</apex:form>
+</apex:page>
+
+TemperatureConverter tc = new TemperatureConverter();
+tc.inputTemp = 100;
+// Input temperature value
+tc.scale = 'CtoF';
+Celsius
+tc.convert();
+System.debug(tc.result);
+// Use 'CtoF' for Celsius to Fahrenheit or 'FtoC' for Fahrenheit to

@@ -1,0 +1,59 @@
+public class CompoundInterestCont { 
+    public Decimal principal { get; set; } 
+    public Decimal rate { get; set; } 
+    public Decimal duration { get; set; } // Renamed from 'time' 
+    public Integer n { get; set; } 
+    public Decimal compoundInterest { get; set; } 
+    public Decimal amount { get; set; } 
+ 
+    public void calculate() { 
+        if(principal > 0 && rate > 0 && duration > 0 && n > 0) { 
+            Double P = (Double) principal; 
+            Double r = (Double) (rate / 100); 
+            Double t = (Double) duration; 
+            Double nt = n * t; 
+            Double baseVal = 1 + (r / n); 
+            Double A = P * Math.pow(baseVal, nt); 
+            amount = (Decimal) A; 
+            compoundInterest = amount - principal; 
+        } else { 
+            amount = 0; 
+            compoundInterest = 0; 
+        } 
+    } 
+} 
+  
+<apex:page controller="CompoundInterestCont"> 
+    <h2>Compound Interest Calculator</h2> 
+    <apex:form> 
+        <apex:pageBlock title="Enter Values"> 
+            <apex:pageBlockSection> 
+                <apex:inputText value="{!principal}" label="Principal (P)"/> 
+                <apex:inputText value="{!rate}" label="Rate (%) (r)"/> 
+                <apex:inputText value="{!duration}" label="Time (Years) (t)"/> 
+                <apex:inputText value="{!n}" label="Compounded Times/Year (n)"/> 
+            </apex:pageBlockSection> 
+ 
+            <apex:pageBlockSection> 
+                <apex:commandButton value="Calculate" action="{!calculate}"/> 
+            </apex:pageBlockSection> 
+ 
+            <apex:pageBlockSection rendered="{!NOT(ISNULL(compoundInterest))}"> 
+                <apex:outputText value="Total Amount (A): ₹{!amount}"/><br/> 
+                <apex:outputText value="Compound Interest: ₹{!compoundInterest}"/> 
+            </apex:pageBlockSection> 
+        </apex:pageBlock> 
+    </apex:form> 
+</apex:page> 
+  
+CompoundInterestCont c = new CompoundInterestCont(); 
+c.principal = 10000;     // ₹10,000 
+c.rate = 5;             
+ // 5% interest rate 
+c.duration = 2;         
+c.n = 4;                
+c.calculate(); 
+ // 2 years 
+ // Compounded quarterly 
+System.debug('Total Amount (A): ₹' + c.amount); 
+System.debug('Compound Interest: ₹' + c.compoundInterest); 

@@ -1,0 +1,105 @@
+public class GeometryAreaCont { 
+    public String shape { get; set; } 
+    public Decimal length { get; set; } 
+    public Decimal width { get; set; } 
+    public Decimal radius { get; set; } 
+    public Decimal baseVal { get; set; } 
+    public Decimal height { get; set; } 
+    public Decimal area { get; set; } 
+ 
+    public List<SelectOption> getShapeOptions() { 
+        return new List<SelectOption>{ 
+            new SelectOption('Square', 'Square'), 
+            new SelectOption('Rectangle', 'Rectangle'), 
+            new SelectOption('Circle', 'Circle'), 
+            new SelectOption('Triangle', 'Triangle') 
+        }; 
+    } 
+ 
+    public void calculate() { 
+        if(shape == 'Square' && length != null) { 
+            area = length * length; 
+        } else if(shape == 'Rectangle' && length != null && width != null) { 
+            area = length * width; 
+        } else if(shape == 'Circle' && radius != null) { 
+            area = Math.PI * Math.pow((Double)radius, 2); 
+        } else if(shape == 'Triangle' && baseVal != null && height != null) { 
+            area = 0.5 * baseVal * height; 
+        } else { 
+            area = null; 
+        } 
+    } 
+} 
+  
+<apex:page controller="GeometryAreaCont"> 
+    <h2>Geometry Area Calculator</h2> 
+    <apex:form> 
+        <apex:pageBlock title="Select Shape and Enter Dimensions"> 
+            <apex:pageBlockSection columns="1"> 
+                <apex:selectList value="{!shape}" size="1" label="Select Shape"> 
+                    <apex:selectOptions value="{!shapeOptions}"/> 
+                </apex:selectList> 
+ 
+                <!-- Input fields rendered conditionally --> 
+                <apex:inputText value="{!length}" label="Length" rendered="{!shape='Square' || 
+shape='Rectangle'}"/> 
+                <apex:inputText value="{!width}" label="Width" 
+rendered="{!shape='Rectangle'}"/> 
+                <apex:inputText value="{!radius}" label="Radius" rendered="{!shape='Circle'}"/> 
+                <apex:inputText value="{!baseVal}" label="Base" 
+rendered="{!shape='Triangle'}"/> 
+                <apex:inputText value="{!height}" label="Height" 
+rendered="{!shape='Triangle'}"/> 
+            </apex:pageBlockSection> 
+ 
+            <apex:pageBlockSection> 
+                <apex:commandButton value="Calculate Area" action="{!calculate}"/> 
+            </apex:pageBlockSection> 
+ 
+            <apex:pageBlockSection rendered="{!NOT(ISNULL(area))}"> 
+                <apex:outputText value="Area = {!area} square units"/> 
+            </apex:pageBlockSection> 
+        </apex:pageBlock> 
+    </apex:form> 
+</apex:page> 
+  
+Great — since you want to run and test your GeometryAreaCont Apex class without 
+using the Visualforce Page, here's how you can do that entirely from the Developer 
+Console's Execute Anonymous Window. 
+Test GeometryAreaCont in Execute Anonymous Window 
+You can simulate a user interaction by setting the values of the fields directly and calling 
+the calculate() method. 
+Test Case 1: Square (Length = 5) 
+GeometryAreaCont g = new GeometryAreaCont(); 
+g.shape = 'Square'; 
+g.length = 5; 
+g.calculate(); 
+System.debug('Area of Square: ' + g.area);  // Should be 25 
+Test Case 2: Rectangle (Length = 4, Width = 3) 
+GeometryAreaCont g = new GeometryAreaCont(); 
+g.shape = 'Rectangle'; 
+g.length = 4; 
+g.width = 3; 
+g.calculate(); 
+System.debug('Area of Rectangle: ' + g.area);  // Should be 12 
+Test Case 3: Circle (Radius = 2) 
+GeometryAreaCont g = new GeometryAreaCont(); 
+g.shape = 'Circle'; 
+g.radius = 2; 
+g.calculate(); 
+System.debug('Area of Circle: ' + g.area);  // Should be approx 12.5664 
+Test Case 4: Triangle (Base = 5, Height = 4) 
+GeometryAreaCont g = new GeometryAreaCont(); 
+g.shape = 'Triangle'; 
+g.baseVal = 5; 
+g.height = 4; 
+g.calculate(); 
+System.debug('Area of Triangle: ' + g.area);  // Should be 10 
+Test Case 5: Missing Inputs (Error Handling) 
+GeometryAreaCont g = new GeometryAreaCont(); 
+g.shape = 'Rectangle'; // But don't provide width 
+g.length = 5; 
+g.calculate(); 
+System.debug('Area with Missing Width: ' + g.area);  // Should be null 
+This lets you fully test your logic without any Visualforce UI. Would you like to add input 
+validation or error messages for missing/invalid values? 

@@ -1,0 +1,55 @@
+public class ArrayAdditionController { 
+    public String array1Input { get; set; } 
+    public String array2Input { get; set; } 
+    public String result { get; set; } 
+ 
+    public void addArrays() { 
+        try { 
+            List<String> arr1Str = array1Input.split(','); 
+            List<String> arr2Str = array2Input.split(','); 
+ 
+            if (arr1Str.size() != arr2Str.size()) { 
+                result = 'Error: Arrays must be of the same length.'; 
+                return; 
+            } 
+ 
+            List<Integer> array1 = new List<Integer>(); 
+            List<Integer> array2 = new List<Integer>(); 
+            List<Integer> sum = new List<Integer>(); 
+ 
+            for (Integer i = 0; i < arr1Str.size(); i++) { 
+                array1.add(Integer.valueOf(arr1Str[i].trim())); 
+                array2.add(Integer.valueOf(arr2Str[i].trim())); 
+                sum.add(array1[i] + array2[i]); 
+            } 
+ 
+            result = 'Result: ' + String.join(sum, ', '); 
+        } catch (Exception e) { 
+            result = 'Error: ' + e.getMessage(); 
+        } 
+    } 
+} 
+--------------------------------------------------------------------------------------------------------------------------  
+<apex:page controller="ArrayAdditionController"> 
+    <h1>Array Addition in Salesforce</h1> 
+    <apex:form> 
+        <apex:pageBlock title="Enter Arrays"> 
+            <apex:pageBlockSection columns="1"> 
+                <apex:inputText value="{!array1Input}" label="Array 1 (comma-separated)"/> 
+                <apex:inputText value="{!array2Input}" label="Array 2 (comma-separated)"/> 
+                <apex:commandButton value="Add Arrays" action="{!addArrays}" 
+rerender="resultPanel"/> 
+            </apex:pageBlockSection> 
+        </apex:pageBlock> 
+         
+        <apex:outputPanel id="resultPanel"> 
+            <apex:outputText value="{!result}" style="font-weight:bold; color:blue;"/> 
+        </apex:outputPanel> 
+    </apex:form> 
+</apex:page> 
+--------------------------------------------------------------------------------------
+ArrayAdditionController ctrl = new ArrayAdditionController(); 
+ctrl.array1Input = '5,10,15'; 
+ctrl.array2Input = '1,2,3'; 
+ctrl.addArrays(); 
+System.debug(ctrl.result); 

@@ -1,0 +1,44 @@
+public class PrimeNumberCont { 
+    public Integer inputNumber { get; set; } 
+    public String result { get; set; } 
+ 
+    public void checkPrime() { 
+        if (inputNumber == null || inputNumber <= 1) { 
+            result = inputNumber + ' is NOT a Prime Number.'; 
+            return; 
+        } 
+ 
+        Boolean isPrime = true; 
+        for (Integer i = 2; i <= Math.floor(Math.sqrt(Decimal.valueOf(inputNumber))); i++) { 
+            if (Math.mod(inputNumber, i) == 0) { 
+                isPrime = false; 
+                break; 
+            } 
+        } 
+ 
+        result = isPrime  
+            ? inputNumber + ' is a Prime Number.'  
+            : inputNumber + ' is NOT a Prime Number.'; 
+    } 
+} 
+  
+<apex:page controller="PrimeNumberCont"> 
+    <apex:form> 
+        <apex:pageBlock title="Prime Number Checker"> 
+            <apex:pageBlockSection> 
+                <apex:inputText value="{!inputNumber}" label="Enter a Number"/> 
+                <apex:commandButton value="Check" action="{!checkPrime}" 
+rerender="resultPanel"/> 
+            </apex:pageBlockSection> 
+            <apex:outputPanel id="resultPanel"> 
+                <apex:outputText value="{!result}" style="font-weight:bold; color:blue;" 
+rendered="{!NOT(ISNULL(result))}"/> 
+            </apex:outputPanel> 
+        </apex:pageBlock> 
+    </apex:form> 
+</apex:page> 
+  
+PrimeNumberCont p = new PrimeNumberCont(); 
+p.inputNumber = 29; // Change this to any number you want to test 
+p.checkPrime(); 
+System.debug(p.result); 

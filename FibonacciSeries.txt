@@ -1,0 +1,55 @@
+public class FibonacciSeries { 
+    public Integer n { get; set; } // Number of terms 
+    public String result { get; set; } // Output result string 
+ 
+    public void generate() { 
+        if (n == null || n <= 0) { 
+            result = 'Please enter a number greater than 0.'; 
+            return; 
+        } 
+ 
+        List<Integer> series = new List<Integer>(); 
+        Integer a = 0, b = 1; 
+ 
+        series.add(a); 
+        if (n > 1) { 
+            series.add(b); 
+        } 
+ 
+        for (Integer i = 2; i < n; i++) { 
+            Integer next = a + b; 
+            series.add(next); 
+            a = b; 
+            b = next; 
+        } 
+ 
+        List<String> output = new List<String>(); 
+        for (Integer num : series) { 
+            output.add(String.valueOf(num)); 
+        } 
+ 
+        result = 'Fibonacci Series: ' + String.join(output, ', '); 
+    } 
+} 
+  
+<apex:page controller="FibonacciSeries"> 
+    <h2>Fibonacci Series Generator</h2> 
+    <apex:form> 
+        <apex:pageBlock title="Enter Number of Terms"> 
+            <apex:pageBlockSection columns="1"> 
+                <apex:inputText value="{!n}" label="Number of Terms"/> 
+                <apex:commandButton value="Generate" action="{!generate}" 
+rerender="resultPanel"/> 
+            </apex:pageBlockSection> 
+ 
+            <apex:outputPanel id="resultPanel"> 
+                <apex:outputText value="{!result}" style="font-weight:bold; color:blue;" 
+rendered="{!NOT(ISNULL(result))}"/> 
+            </apex:outputPanel> 
+        </apex:pageBlock> 
+    </apex:form> 
+</apex:page> 
+  
+String result = FibonacciSeries.generate(10); // Replace 10 with desired number of 
+terms 
+System.debug(result); 
