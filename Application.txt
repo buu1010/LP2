@@ -1,0 +1,62 @@
+FLOOR(
+    (TODAY() - Date_of_Birth__c) / 365.25
+)
+
+IF(
+    (TODAY() - Date_of_Birth__c) / 365 >= 18,
+    TRUE,
+    FALSE
+)
+
+LEN(PAN_Number__c) <> 10
+
+NOT(REGEX(Aadhar_Number__c, "^[0-9]{12}$"))
+
+NOT(REGEX(Email_ID__c, "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}"))
+
+NOT(REGEX(Mobile_Number__c, "^[6-9][0-9]{9}$"))
+
+trigger StudentTrigger on Student__c (before insert, before update) {
+    for (Student__c s : Trigger.new) {
+        if (s.Date_of_Birth__c != null) {
+            Integer age = Date.today().year() - s.Date_of_Birth__c.year();
+            
+            // Adjust if birthday hasn’t occurred yet this year
+            if (Date.today().month() < s.Date_of_Birth__c.month() || 
+                (Date.today().month() == s.Date_of_Birth__c.month() && Date.today().day() < s.Date_of_Birth__c.day())) {
+                age -= 1;
+            }
+
+            s.Age__c = age;
+            s.Voting_Eligible__c = (age >= 18);
+        } else {
+            s.Age__c = null;
+            s.Voting_Eligible__c = false;
+        }
+    }
+}
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+Checkbox:
+AND(
+    Paper_Publication__c >= 1,
+    Consultancy__c = TRUE
+)
+
+LEN(Employee_ID__c) <> 6
+
+
+
+If you don’t want formula field and instead want to set the value via trigger, follow this:
+
+trigger EmployeeTrigger on Employee__c (before insert, before update) {
+    for (Employee__c emp : Trigger.new) {
+        if (emp.Paper_Publication__c != null && emp.Consultancy__c != null) {
+            emp.Annual_Increment_Eligible__c = 
+                (emp.Paper_Publication__c >= 1 && emp.Consultancy__c == 'Yes');
+        } else {
+            emp.Annual_Increment_Eligible__c = false;
+        }
+    }
+}
