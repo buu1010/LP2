@@ -1,0 +1,288 @@
+import tkinter as tk
+from tkinter import scrolledtext
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+import nltk
+
+#tkinter: For building the GUI (Graphical User Interface).
+#nltk: Natural Language Toolkit — used for basic Natural Language Processing tasks like tokenizing and removing stopwords.
+
+# Download NLTK data
+nltk.download('punkt')
+nltk.download('stopwords')
+#Downloads necessary NLTK data for:
+#punkt → tokenizer
+#stopwords → common English words to filter ou
+
+# Constants
+DOCTORS = {
+    "Dr. Smith": ["10:00", "11:00"],
+    "Dr. Alice": ["12:00", "13:00"],
+    "Dr. Max": ["12:00", "14:00"]
+}
+AVAILABLE_DATES = ["2025-05-01", "2025-05-02", "2025-05-03"]
+
+# Global states
+appointments = []
+bot_state = {}
+
+#DOCTORS: Maps doctors to their available time slots.
+# AVAILABLE_DATES: Days when appointments can be booked.
+# appointments: A list storing booked appointment dictionaries.
+# bot_state: Keeps track of where the user is in the chat (booking step, etc.)
+
+# --- Helper Functions ---
+
+def preprocess(text):
+    tokens = word_tokenize(text.lower())
+    return [t for t in tokens if t.isalpha() and t not in stopwords.words('english')]
+
+#Converts input to lowercase
+# Tokenizes into words
+# Removes stopwords and non-alphabetic tokens
+
+def reset_state():
+    bot_state.clear()
+#Resets the state after a conversation finishes.
+
+def format_appointments():
+    if not appointments:
+        return "No appointments found."
+    return "\n".join([f"{a['name']} - {a['doctor']} at {a['time']} on {a['date']}" for a in appointments])
+#Returns all current appointments in readable format.
+
+
+
+
+
+# --- Chatbot Logic ---
+
+def chatbot_response(user_input):
+    if not user_input.strip():
+        return "Please enter a valid message."
+
+    if "show appointments" in user_input.lower():
+        return format_appointments()
+
+    tokens = preprocess(user_input)
+
+    if any(w in tokens for w in ["hi", "hello"]):
+        return "Hello! How can I assist you today?"
+    if "thank" in tokens:
+        return "You're welcome!"
+    if "sorry" in tokens:
+        return "No problem."
+
+    # Cancel request
+    if ("cancel appointment" in user_input.lower() or ("cancel" in tokens and "appointment" in tokens)) and bot_state.get("step") is None:
+        bot_state["step"] = "cancel_name"
+        return "Please provide the patient's name to cancel the appointment."
+
+    if bot_state.get("step") == "cancel_name":
+        for appt in appointments:
+            if appt["name"].lower() == user_input.lower():
+                appointments.remove(appt)
+                reset_state()
+                return "Appointment cancelled."
+        reset_state()
+        return "No matching appointment found."
+
+    # Reschedule request
+    if ("reschedule appointment" in user_input.lower() or "reschedule" in tokens) and bot_state.get("step") is None:
+        bot_state["step"] = "reschedule_name"
+        return "Please provide the patient's name to reschedule the appointment."
+
+    if bot_state.get("step") == "reschedule_name":
+        for appt in appointments:
+            if appt["name"].lower() == user_input.lower():
+                appointments.remove(appt)
+                bot_state.update({"name": appt["name"], "step": "date"})
+                return f"Sure, {appt['name']}. Choose a new date: {', '.join(AVAILABLE_DATES)}"
+        reset_state()
+        return "No appointment found for that name to reschedule."
+
+    # Start booking
+    if ("book" in tokens or "appointment" in tokens) and bot_state.get("step") is None:
+        bot_state["step"] = "name"
+        return "Please provide your name to book an appointment."
+
+    if bot_state.get("step") == "name":
+        bot_state["name"] = user_input
+        bot_state["step"] = "date"
+        return f"Hi {user_input}, choose a date: {', '.join(AVAILABLE_DATES)}"
+
+    if bot_state.get("step") == "date":
+        if user_input not in AVAILABLE_DATES:
+            return "Date not available. Try another."
+        bot_state["date"] = user_input
+        bot_state["step"] = "doctor"
+        return f"Available doctors: {', '.join(DOCTORS.keys())}"
+
+    if bot_state.get("step") == "doctor":
+        if user_input not in DOCTORS:
+            return "Doctor not available. Try again."
+        bot_state["doctor"] = user_input
+        bot_state["step"] = "time"
+        return f"Available times: {', '.join(DOCTORS[user_input])}"
+
+    if bot_state.get("step") == "time":
+        chosen_time = user_input
+        doctor = bot_state["doctor"]
+        date = bot_state["date"]
+        booked_times = [a["time"] for a in appointments if a["doctor"] == doctor and a["date"] == date]
+
+        if chosen_time in booked_times:
+            bot_state["step"] = "suggest_time"
+            return f"{doctor} is already booked at {chosen_time} on {date}. Would you like to pick another time?"
+
+        if chosen_time not in DOCTORS[doctor]:
+            return "Invalid time. Please choose from the listed times."
+
+        bot_state["time"] = chosen_time
+        bot_state["step"] = "confirm"
+        return f"Confirm appointment with {doctor} at {chosen_time} on {date}? (yes/no)"
+
+    if bot_state.get("step") == "suggest_time":
+        if "yes" in user_input.lower():
+            doctor = bot_state["doctor"]
+            date = bot_state["date"]
+            booked = [a["time"] for a in appointments if a["doctor"] == doctor and a["date"] == date]
+            available = [t for t in DOCTORS[doctor] if t not in booked]
+            if not available:
+                reset_state()
+                return f"Sorry, no other times available for {doctor} on {date}."
+            bot_state["step"] = "time"
+            return f"Available times: {', '.join(available)}"
+        else:
+            reset_state()
+            return "Okay, appointment not scheduled."
+
+    if bot_state.get("step") == "confirm":
+        if "yes" in user_input.lower():
+            appointments.append({
+                "name": bot_state["name"],
+                "date": bot_state["date"],
+                "doctor": bot_state["doctor"],
+                "time": bot_state["time"]
+            })
+            reset_state()
+            return "Appointment confirmed!"
+        else:
+            reset_state()
+            return "Okay, no appointment booked."
+
+    return "I can help you book, cancel, or reschedule appointments. Type 'show appointments' to view existing ones."
+
+# --- GUI Setup ---
+
+def send_message(event=None):
+    user_input = entry.get().strip()
+    if not user_input:
+        return
+    chat_log.config(state='normal')
+    chat_log.insert(tk.END, f"You: {user_input}\n")
+    response = chatbot_response(user_input)
+    chat_log.insert(tk.END, f"Bot: {response}\n\n")
+    chat_log.config(state='disabled')
+    chat_log.yview(tk.END)
+    entry.delete(0, tk.END)
+
+#Gets user input from entry box
+# Calls chatbot_response()
+# isplays user input and bot response in the chat log
+
+window = tk.Tk()
+window.title("Medical Appointment Chatbot")
+
+chat_log = scrolledtext.ScrolledText(window, height=20, width=70, wrap=tk.WORD, state='disabled')
+chat_log.pack(padx=10, pady=10)
+
+entry = tk.Entry(window, width=70)
+entry.pack(padx=10, pady=(0, 10))
+entry.bind("<Return>", send_message)
+
+send_button = tk.Button(window, text="Send", command=send_message)
+send_button.pack()
+
+chat_log.config(state='normal')
+chat_log.insert(tk.END, "Bot: Hello! How can I assist you today?\n\n")
+chat_log.config(state='disabled')
+
+window.mainloop()
+
+
+#chat_log: Shows conversation (read-only).
+# entry: Where user types message.
+# send_button: Sends the message (or press Enter).
+# Mainloop: Runs the GUI app.
+
+#How to run
+# pip install nltk
+
+
+#INPUTS:
+# Booking a New Appointment
+#I want to book an appointment
+# John
+# 2025-05-01
+# Dr. Smith
+# 10:00
+# yes
+
+#Booking with a Taken Slot
+# First book:
+# I want to book an appointment
+# Alice
+# 2025-05-02
+# Dr. Max
+# 12:00
+# yes
+
+#Then try:
+    
+#I want to book an appointment
+# Bob
+# 2025-05-02
+# Dr. Max
+# 12:00
+# yes
+# You'll get a suggestion for alternative times.
+
+
+#✅ What Is This Chatbot?
+# This is a Rule-Based Appointment Booking Chatbot built using:
+# Tkinter: Python's standard GUI package for the interface.
+# NLTK: For tokenization and stopword removal.
+# State Management (via bot_state): Used to remember where the user is in the booking process.
+
+#📚 Theory Explanation (For Viva)
+# 🔹 1. What is a Chatbot?
+# A chatbot is a software application used to conduct an online conversation via text or voice. Chatbots simulate how a human would behave as a conversational partner.
+
+#🔹 2. Types of Chatbots
+#Rule-Based Chatbots: Follow predefined flows using "if-else" logic.
+# AI-Based Chatbots: Use machine learning and NLP for understanding user input.This project is Rule-Based.
+
+#🔹 3. What is NLTK and why is it used here?
+#NLTK: Natural Language Toolkit – a Python library for working with human language data.
+# Use in this project:
+#word_tokenize: Breaks sentences into words.
+# stopwords: Removes common non-informative words (like "is", "the", etc.).
+# Helps in preprocessing user input for better keyword matching.
+
+#🔹 4. How Does the Booking Flow Work?
+# When user types something like:
+# "I want to book an appointment
+# The chatbot:
+# Asks for name.
+#Then date.
+# Then doctor.
+# Then time.
+# Finally asks for confirmation.
+# It keeps track of steps using a dictionary called bot_state.
+
+#🔹 5. How Does State Management Work?
+# The chatbot stores conversation progress in the bot_state dictionary:
+# step: What step user is currently at (name, date, etc.)
+# name, doctor, date, time: Temporarily stores data for the current session.
+# reset_state() is used to clear this data after booking/cancelling is complete.

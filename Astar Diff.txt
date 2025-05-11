@@ -1,0 +1,149 @@
+Astar Diff:
+
+import heapq
+
+# Define object dimensions (width, height)
+rectangles = [(3, 2), (4, 1), (2, 3), (1, 4), (3, 3)]
+squares = [(2, 2), (1, 1), (2, 2), (1, 1)]
+objects = rectangles + squares
+
+# Room dimensions (Width x Height)
+ROOM_WIDTH = 10
+ROOM_HEIGHT = 10
+
+# Initialize room as empty grid (0: empty, 1: occupied)
+room = [[0 for _ in range(ROOM_WIDTH)] for _ in range(ROOM_HEIGHT)]
+
+# A* Node
+class Node:
+    def __init__(self, x, y, cost, heuristic, path):
+        self.x = x
+        self.y = y
+        self.cost = cost  # g(n)
+        self.heuristic = heuristic  # h(n)
+        self.path = path  # placement history
+
+    def __lt__(self, other):
+        return (self.cost + self.heuristic) < (other.cost + other.heuristic)
+
+# Check if object can be placed at position
+def can_place(x, y, w, h, room):
+    if x + w > ROOM_WIDTH or y + h > ROOM_HEIGHT:
+        return False
+    for i in range(y, y + h):
+        for j in range(x, x + w):
+            if room[i][j] == 1:
+                return False
+    return True
+
+# Place the object
+def place_object(x, y, w, h, room):
+    for i in range(y, y + h):
+        for j in range(x, x + w):
+            room[i][j] = 1
+
+# Heuristic: total number of empty cells
+def heuristic(room):
+    return sum(row.count(0) for row in room)
+
+# A* placement strategy
+def arrange_objects(objects):
+    start_node = Node(0, 0, 0, heuristic(room), [])
+    open_list = [start_node]
+    placed_objects = []
+
+    for obj in objects:
+        obj_w, obj_h = obj
+        best_node = None
+        best_room_state = None
+
+        while open_list:
+            node = heapq.heappop(open_list)
+            for y in range(ROOM_HEIGHT):
+                for x in range(ROOM_WIDTH):
+                    if can_place(x, y, obj_w, obj_h, room):
+                        # Make a deep copy of room state
+                        new_room = [row[:] for row in room]
+                        place_object(x, y, obj_w, obj_h, new_room)
+                        h = heuristic(new_room)
+                        new_path = node.path + [((obj_w, obj_h), (x, y))]
+                        new_node = Node(x, y, node.cost + 1, h, new_path)
+
+                        if best_node is None or h < best_node.heuristic:
+                            best_node = new_node
+                            best_room_state = new_room
+            break  # Place one object at a time
+
+        if best_node:
+            room[:] = best_room_state
+            placed_objects.append(best_node.path[-1])
+            open_list = [best_node]  # reset open_list for next object
+        else:
+            print(f"Could not place object {obj}")
+            break
+
+    return placed_objects
+
+# Run arrangement
+placements = arrange_objects(objects)
+
+# Print results
+print("Final Placements:")
+for i, ((w, h), (x, y)) in enumerate(placements):
+    print(f"Object {i+1}: Size({w}x{h}) placed at ({x},{y})")
+
+
+#python object_arrangement.py
+
+
+📥 What Inputs Are Needed?
+The room and object dimensions are hardcoded:
+
+Room: 10x10 grid
+
+Objects: 5 rectangles and 4 squares
+
+You can change these values in the lists rectangles, squares, or ROOM_WIDTH, ROOM_HEIGHT.
+
+
+
+🧠 What is A* (A-Star) algorithm?
+A* is a pathfinding and graph traversal algorithm.
+
+It uses a heuristic to prioritize paths that appear to lead most quickly to the goal.
+
+Formula: f(n) = g(n) + h(n)
+
+g(n) = cost to reach node n
+
+h(n) = estimated cost to goal from node n
+
+❓Why A* for object placement?
+It's used here to find the most efficient position for placing objects by minimizing unused space.
+
+We treat the grid like a pathfinding map, where each position is a candidate to place an object.
+
+❓What kind of AI system is this?
+This is a spatial reasoning AI system used for automated planning and resource optimization.
+
+It is related to constraint satisfaction problems and space management systems.
+
+❓Can A* be used in other domains?
+Yes. Examples include:
+
+Game pathfinding
+
+Robotics
+
+Network routing
+
+Puzzle solvers
+
+
+
+
+
+
+
+
+
