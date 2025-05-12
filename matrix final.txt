@@ -1,0 +1,108 @@
+public class MatrixOperations { 
+    public Integer rows { get; set; } 
+    public Integer cols { get; set; } 
+    public List<List<Integer>> matrix1 { get; set; } 
+    public List<List<Integer>> matrix2 { get; set; } 
+    public List<List<Integer>> resultMatrix { get; set; } 
+ 
+    // Constructor to initialize matrices based on rows and columns 
+    public MatrixOperations() { 
+        matrix1 = new List<List<Integer>>(); 
+        matrix2 = new List<List<Integer>>(); 
+        resultMatrix = new List<List<Integer>>(); 
+    } 
+ 
+    // Method to perform matrix addition 
+    public void addMatrices() { 
+        if (matrix1.size() != matrix2.size() || matrix1[0].size() != matrix2[0].size()) { 
+            resultMatrix = new List<List<Integer>>{new List<Integer>{0}}; 
+            return; 
+        } 
+ 
+        resultMatrix = new List<List<Integer>>(); 
+        for (Integer i = 0; i < rows; i++) { 
+            List<Integer> row = new List<Integer>(); 
+            for (Integer j = 0; j < cols; j++) { 
+                row.add(matrix1[i][j] + matrix2[i][j]); 
+            } 
+            resultMatrix.add(row); 
+        } 
+    } 
+} 
+  
+<apex:page controller="MatrixOperations"> 
+    <h2>Matrix Addition</h2> 
+    <apex:form> 
+        <apex:pageBlock title="Enter Matrix Dimensions"> 
+            <apex:pageBlockSection> 
+                <apex:inputText value="{!rows}" label="Number of Rows"/> 
+                <apex:inputText value="{!cols}" label="Number of Columns"/> 
+                <apex:commandButton value="Create Matrices" action="{!createMatrices}" 
+rerender="matrixInputs"/> 
+            </apex:pageBlockSection> 
+        </apex:pageBlock> 
+ 
+        <apex:pageBlock id="matrixInputs" title="Enter Matrix Values" 
+rendered="{!NOT(ISNULL(rows))}"> 
+            <apex:pageBlockSection> 
+                <h3>Matrix 1</h3> 
+                <apex:repeat value="{!matrix1}" var="row"> 
+                    <apex:repeat value="{!row}" var="element"> 
+                        <apex:inputText value="{!element}" label="Element"/> 
+                    </apex:repeat> 
+                </apex:repeat> 
+                <h3>Matrix 2</h3> 
+                <apex:repeat value="{!matrix2}" var="row"> 
+                    <apex:repeat value="{!row}" var="element"> 
+                        <apex:inputText value="{!element}" label="Element"/> 
+                    </apex:repeat> 
+                </apex:repeat> 
+            </apex:pageBlockSection> 
+ 
+            <apex:pageBlockSection> 
+                <apex:commandButton value="Add Matrices" action="{!addMatrices}" 
+rerender="resultPanel"/> 
+            </apex:pageBlockSection> 
+        </apex:pageBlock> 
+ 
+        <apex:outputPanel id="resultPanel"> 
+            <apex:pageBlock title="Matrix Addition Result" 
+rendered="{!NOT(ISNULL(resultMatrix))}"> 
+                <apex:pageBlockSection> 
+                    <h3>Result Matrix</h3> 
+                    <apex:repeat value="{!resultMatrix}" var="row"> 
+                        <apex:repeat value="{!row}" var="element"> 
+                            <apex:outputText value="{!element}" style="margin-right: 5px;"/> 
+                        </apex:repeat> 
+                        <br/> 
+                    </apex:repeat> 
+                </apex:pageBlockSection> 
+            </apex:pageBlock> 
+        </apex:outputPanel> 
+    </apex:form> 
+</apex:page> 
+  
+// Initialize the MatrixOperations class 
+MatrixOperations matrixOps = new MatrixOperations(); 
+// Set rows and columns for the matrices 
+matrixOps.rows = 3; 
+matrixOps.cols = 3; 
+// Define matrix1 (3x3 matrix) 
+matrixOps.matrix1 = new List<List<Integer>>{ 
+new List<Integer>{1, 2, 3}, 
+new List<Integer>{4, 5, 6}, 
+new List<Integer>{7, 8, 9} 
+}; 
+// Define matrix2 (3x3 matrix) 
+matrixOps.matrix2 = new List<List<Integer>>{ 
+new List<Integer>{9, 8, 7}, 
+new List<Integer>{6, 5, 4}, 
+new List<Integer>{3, 2, 1} 
+}; 
+// Perform matrix addition 
+matrixOps.addMatrices(); 
+// Output the result matrix to the debug log 
+System.debug('Resulting Matrix after Addition:'); 
+for (List<Integer> row : matrixOps.resultMatrix) { 
+System.debug(row); 
+} 
